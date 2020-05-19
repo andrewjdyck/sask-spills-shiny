@@ -72,18 +72,19 @@ symbols(latlon_projected@coords,
 library(ggplot2)
 tt <- st_as_sf(ca.provinces)
 # tt <- st_as_sf(ca_projected)
-ggplot(tt) +
-# ggplot(ca.provinces)
+pp <- ggplot(tt) + 
   geom_sf() +
-  # geom_polygon() +
-  geom_point(data = dd[1:10,], aes(x = lng, y = lat), size = 4, 
-             shape = 23, fill = "darkred")
-  # coord_map("conic", lat0 = 30)
-  # coord_sf(datum = st_crs(conterm_proj4))
+  geom_point(data = dd, aes(x = lng, y = lat), size = 2, 
+             shape = "circle", color=rgb(red=1, green=0, blue=0, alpha=.5), alpha=.1) +
+  labs(x="", y="", title="Oil spills reported in Saskatchewan (2005 - 2017)") + #labels
+  theme(axis.ticks.y = element_blank(),axis.text.y = element_blank(), # get rid of x ticks/text
+        axis.ticks.x = element_blank(),axis.text.x = element_blank(), # get rid of y ticks/text
+        plot.title = element_text(lineheight=.8, face="bold", vjust=1)) # make title bold and add space
 
-opendataskr::finalise_plot(pp)
+logo_path <- file.path(system.file("extdata", package = 'opendataskr'),"ODS-open-data-saskatchewan-logo.png")
+opendataskr::finalise_plot(pp, source_name = "", logo_image_path = logo_path)
 
-logo_image_path <- file.path(system.file("extdata", package = 'opendataskr'),"logo.png")
+
 footer <- grid::rasterGrob(png::readPNG(logo_image_path), x = 0.99, just="right")
 
 
