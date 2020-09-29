@@ -2,37 +2,83 @@
 title: "Sask Spills"
 output: 
   flexdashboard::flex_dashboard:
-    storyboard: true
+    # storyboard: true
     social: menu
-    source: embed
+    source_code: embed
+    orientation: rows
+# runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
 library(flexdashboard)
-```
-
-### Mapping spills
-
-```{r}
 library(leaflet)
-leaflet() %>%
-  addTiles() %>%
-  addMarkers(lng=174.768, lat=-36.852, popup="The birthplace of R")
+library(crosstalk)
+library(DT)
+library(dplyr)
+
+lsd_geocoded <- read.csv(
+  './data/lsd_geocoded.csv', 
+  stringsAsFactors = FALSE
+  ) %>%
+    setNames(c('Land.Dls.Id', 'lat', 'lng'))
+  
+spill_data <- read.csv(
+    './data/87695-IncidentReport_2017-02-21_233917.XLSX - UpstreamIncident.csv', 
+    stringsAsFactors = FALSE
+    ) %>%
+  left_join(lsd_geocoded) %>%
+  sample_frac(.1) %>%
+  mutate(year = as.numeric(substr(Reported.Date, 1, 4))) %>%
+  filter(is.na(lat)==FALSE)
+
+spills_sub <- spill_data[, c('year', 'lat', 'lng')]
+sd <- SharedData$new(as.data.frame(spills_sub))
+
 ```
 
-***
+Inputs {.sidebar}
+-----------------------------------------------------------------------
 
-Some discussion of the map
+```{r}
+filter_slider("year", "Year", sd, ~year, step=1)
+```
 
 
-### Look at spills over time
+Row
+-----------------------------------------------------------------------
+
+### Map
 
 ```{r}
 
+# bscols(
+  leaflet(sd) %>% addTiles() %>% 
+    addMarkers()
+  # ,
+  # datatable(
+  #   sd, extensions="Scroller", style="bootstrap", 
+  #   class="compact", width="100%",
+  #   options=list(deferRender=TRUE, scrollY=300, scroller=TRUE)
+  # )
+# )
+
 ```
 
-***
-
-Discussion of the time plot
 
 
+Row
+-----------------------------------------------------------------------
+
+### Table
+
+```{r}
+datatable(
+    sd,
+    # sd$transform(as.data.frame), 
+    rownames = FALSE
+    # extensions="Scroller",
+    # style="bootstrap", 
+    # class="compact", width="100%"
+    # options=list(scrollY=200, scroller=TRUE)
+  )
+```
